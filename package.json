@@ -2,9 +2,19 @@
   "name": "gatekeeper_api",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "./src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node --env-file=.env src/server.js",
+    "lint": "eslint .",
+    "dev": "node --env-file=.env --watch src/server.js",
+    "db:migrate": "node --env-file=.env scripts/migrate.js",
+    "db:seed": "node --env-file=.env scripts/seed.js",
+    "db:reset": "node --env-file=.env scripts/reset-db.js",
+    "pretest": "node --env-file=.env.test scripts/reset-db.js",
+    "test": "node --env-file=.env.test --test"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +26,24 @@
       "onFail": "download"
     }
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
+    "http-errors": "^2.0.1",
+    "pg": "^8.22.0",
+    "pg-query-stream": "^4.16.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.7.0",
+    "globals": "^17.7.0",
+    "pino-pretty": "^13.1.3"
+  }
 }
