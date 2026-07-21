@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+
+# Local secrets / environment (never commit real credentials)
+.env
+
+# Logs and OS noise
+*.log
+.DS_Store
+test.rest
