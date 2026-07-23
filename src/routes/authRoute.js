@@ -3,7 +3,7 @@ import createError from "http-errors";
 import * as users from "../models/users.js";
 import { parse } from "../lib/validate.js";
 import { userSchema } from "../lib/schemas.js";
-import { hashPassword, verifyPassword } from "../lib/password.js";
+import { hashPassword, verifyPassword } from "../lib/passwords.js";
 import { signToken } from "../lib/tokens.js";
 
 const router = Router();
