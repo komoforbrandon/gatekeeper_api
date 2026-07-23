@@ -16,9 +16,9 @@ export async function create({ email, passwordHash }) {
 }
 
 export async function findByEmail(email) {
-  const { row } = await db.query(
+  const { rows } = await db.query(
     `SELECT id, email, password_hash, created_at FROM users WHERE email = $1`,
     [email],
   );
-  return row[0] ?? null;
+  return rows[0] ?? null;
 }

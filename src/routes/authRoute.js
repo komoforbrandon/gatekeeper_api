@@ -17,7 +17,7 @@ router.post("/register", async (req, res) => {
       email,
       passwordHash: hashPassword(password),
     });
-    res.status(201).json({ id: user.id, email: user.email });
+    res.status(201).json({ id: user.id, email: user.email, token: signToken(user)});
   } catch (err) {
     if (err.message === "duplicate") {
       throw createError(409, "That email already exists");
@@ -35,6 +35,8 @@ router.post("/login", async (req, res) => {
     password,
     user ? user.password_hash : dummy_hash,
   );
+
+  console.log(passwordCheck)
 
   if (!user || !passwordCheck) {
     throw createError(401, "Invalid email or password");
