@@ -4,7 +4,7 @@ export const idSchema = z.coerce.number().int().positive();
 
 export const userSchema = z.object({
   email: z.string().email().max(255),
-  passwordHash: z.string().max(255),
+  password: z.string().max(255),
 })
 
 

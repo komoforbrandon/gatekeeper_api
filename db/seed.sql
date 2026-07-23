@@ -1,1 +1,0 @@
-UPDATE events SET seats_remaining = seats_remaining - $1 WHERE id = $2 AND status = 'on_sale' AND seats_remaining >= $1 RETURNING seats_remaining
