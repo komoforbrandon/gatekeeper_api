@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { db } from "../src/db.js";
 
 const schema = readFileSync(
-  new URL("../db/schema.sql", import.meta.url),
+  new URL("../db/schemas.sql", import.meta.url),
   "utf8",
 );
 

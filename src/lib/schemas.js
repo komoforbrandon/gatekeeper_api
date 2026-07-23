@@ -14,15 +14,12 @@ export const customerSchema = z.object({
    email: z.string().email().max(255).nullable(),
 })
 
-export const eventSchema = z.object({
-    organizer_id: idSchema,
-    name: z.string().max(150),
-    venue: z.string().max(150),
-    starts_at: z.date(),
+export const createEventSchema = z.object({
+    name: z.string().min(1).max(150),
+    venue: z.string().min(1).max(150),
+    starts_at: z.string().datetime(),
     capacity: z.coerce.number().int().positive(),
-    seats_remaining: z.coerce.number().int().positive(),
-    status: z.enum(['on_sale', 'sold_out', 'cancelled']).default('on_sale'),
-})
+}).strict();
 
 
 
@@ -38,8 +35,8 @@ export const bookingSchema = z.object({
 //list event query schema GET /events?after=&limit= and GET /events/:id — list / fetch events. 200 · 404.
 
 export const listeventQuerySchema = z.object({
-    after: z.date().optional(),
-    limit: z.coerce.number().int().positive().optional()
+    after: z.coerce.number().int().nonnegative().optional().default(0),
+    limit: z.coerce.number().int().positive().max(100).optional().default(20),
 })
 
 export const fetcheventQuerySchema = z.object({

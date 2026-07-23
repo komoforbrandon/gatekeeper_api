@@ -9,4 +9,3 @@ node_modules/
 .DS_Store
 test.rest
 api.test.rest
-*.rest

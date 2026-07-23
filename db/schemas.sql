@@ -35,6 +35,8 @@ CREATE TABLE
         booked_at TIMESTAMPTZ NOT NULL DEFAULT now ()
     );
 
-CREATE INDEX idx_events_starts_at_id ON events (starts_at, id);
-CREATE INDEX idx_bookings_event_id_id ON bookings (event_id, id);
-CREATE INDEX idx_customers_email ON customers (email);
+CREATE INDEX IF NOT EXISTS idx_events_starts_at_id ON events (starts_at, id);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_event_id_id ON bookings (event_id, id);
+
+CREATE INDEX IF NOT EXISTS idx_customers_email ON customers (email);
