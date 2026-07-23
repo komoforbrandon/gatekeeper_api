@@ -33,3 +33,15 @@ export const bookingSchema = z.object({
   status: z.enum(['confirmed', 'cancelled']).default('confirmed'),
   createdAt: z.date(),
 })
+
+
+//list event query schema GET /events?after=&limit= and GET /events/:id — list / fetch events. 200 · 404.
+
+export const listeventQuerySchema = z.object({
+    after: z.date().optional(),
+    limit: z.coerce.number().int().positive().optional()
+})
+
+export const fetcheventQuerySchema = z.object({
+    id: idSchema
+})

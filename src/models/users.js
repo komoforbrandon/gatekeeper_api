@@ -10,7 +10,7 @@ export async function create({ email, passwordHash }) {
     );
     return rows[0];
   } catch (err) {
-    if (err.code === "23505") throw new Error("User already exists", { cause: err });
+    if (err.code === "23505") throw new Error('duplicate',{cause: err});
     throw err;
   }
 }
