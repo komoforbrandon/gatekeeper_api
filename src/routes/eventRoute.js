@@ -1,5 +1,4 @@
 import { Router } from "express";
-import createError from "http-errors";
 import * as events from "../models/events.js";
 import { parse } from "../lib/validate.js";
 import { authorizeUser } from "../middlewares/authMiddleware.js";
@@ -7,6 +6,7 @@ import {
   idSchema,
   listeventQuerySchema,
   createEventSchema,
+  createBookingsSchema,
 } from "../lib/schemas.js";
 
 const router = Router();
@@ -38,7 +38,6 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-
 router.post("/", authorizeUser, async (req, res, next) => {
   const validateBody = parse(createEventSchema, req.body, 400);
   const organizer_id = req.user.id;
@@ -54,10 +53,9 @@ router.post("/", authorizeUser, async (req, res, next) => {
   }
 });
 
-
 router.get("/:id/bookings", authorizeUser, async (req, res, next) => {
   try {
-    const  id  = parse(idSchema, req.params.id, 400);
+    const id = parse(idSchema, req.params.id, 400);
     const { after, limit } = parse(listeventQuerySchema, req.query, 400);
     const organizer_id = req.user.id;
 
@@ -87,5 +85,43 @@ router.get("/:id/bookings", authorizeUser, async (req, res, next) => {
   }
 });
 
+//POST /events/:id/bookings — book { customer_id, quantity }, transactionally. 201 + Location · 409 sold out / not enough seats / event cancelled · 400 unknown customer or bad quantity.
+
+router.post("/:id/bookings", async (req, res, next) => {
+  try {
+    const event_id = parse(idSchema, req.params.id, 400);
+
+    const { customer_id, quantity } = parse(
+      createBookingsSchema,
+      req.body,
+      400,
+    );
+
+    const result = await events.createBookings({
+      event_id,
+      customer_id,
+      quantity,
+    });
+
+    if (!result.success) {
+      if (result.reason === "Customer not found in DB") {
+        return res.status(400).json({ error: "Unknown customer reference" });
+      }
+      if (result.reason === "Event not found") {
+        return res.status(404).json({ error: "Target event does not exist" });
+      }
+      if (result.reason === "Insufficient seats or Not on sale") {
+        return res
+          .status(409)
+          .json({ error: "Booking refused: Event is full or sold out" });
+      }
+    }
+
+    res.setHeader("Location", `/bookings/${result.bookingInfo.id}`);
+    return res.status(201).json(result);
+  } catch (err) {
+    next(err);
+  }
+});
 
 export default router;
