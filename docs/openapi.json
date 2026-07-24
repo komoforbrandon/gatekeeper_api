@@ -11,7 +11,7 @@
   },
   "servers": [
     {
-      "url": "https://api.example.com",
+      "url": "https://gatekeeper-api-czby.onrender.com",
       "description": "Production API server"
     }
   ],
