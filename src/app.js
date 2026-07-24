@@ -25,10 +25,17 @@ export function createApp() {
 
   app.use(express.json());
 
+  app.get("/", (req, res) => {
+    res.json({
+      status: "ok",
+      message: "Welcome to Gatekeeper API service",
+      Docs: "/docs",
+      Health: "/health",
+    });
+  });
   app.get("/health", (req, res) => {
     res.json({ status: "ok" });
   });
-  
 
   app.use(
     rateLimit({
