@@ -6,6 +6,7 @@ import pinoHttp from "pino-http";
 import createError from "http-errors";
 import authRoute from "./routes/authRoute.js";
 import eventRoute from "./routes/eventRoute.js";
+import bookingRoute from "./routes/bookingRoute.js";
 // import { mountDocs } from './routes/docsRoute.js'
 import { logger } from "./lib/logger.js";
 import { config } from "./config.js";
@@ -39,6 +40,7 @@ export function createApp() {
 
   app.use("/auth", authRoute);
   app.use("/events", eventRoute);
+  app.use("/bookings", bookingRoute);
   app.use((req, res, next) => {
     next(createError(404, "Route not found"));
   });
