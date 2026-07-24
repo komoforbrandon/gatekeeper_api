@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as customer from "../models/customer.js";
+import * as customer from "../models/customers.js";
 import { parse } from "../lib/validate.js";
 import { createCustomerSchema } from "../lib/schemas.js";
 
