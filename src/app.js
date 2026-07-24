@@ -7,7 +7,8 @@ import createError from "http-errors";
 import authRoute from "./routes/authRoute.js";
 import eventRoute from "./routes/eventRoute.js";
 import bookingRoute from "./routes/bookingRoute.js";
-// import { mountDocs } from './routes/docsRoute.js'
+import customerRoute from "./routes/customerRoute.js";
+import docsRoute from "./routes/docsRoute.js";
 import { logger } from "./lib/logger.js";
 import { config } from "./config.js";
 
@@ -27,7 +28,7 @@ export function createApp() {
   app.get("/health", (req, res) => {
     res.json({ status: "ok" });
   });
-  // mountDocs(app)
+  
 
   app.use(
     rateLimit({
@@ -41,6 +42,8 @@ export function createApp() {
   app.use("/auth", authRoute);
   app.use("/events", eventRoute);
   app.use("/bookings", bookingRoute);
+  app.use("/customers", customerRoute);
+  app.use("/docs", docsRoute);
   app.use((req, res, next) => {
     next(createError(404, "Route not found"));
   });

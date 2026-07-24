@@ -39,3 +39,10 @@ export const listeventQuerySchema = z.object({
 export const fetcheventQuerySchema = z.object({
     id: idSchema
 })
+
+//this is the create customer schema
+
+export const createCustomerSchema = z.object({
+    full_name: z.string().max(120),
+    email: z.string().email().max(255),
+})

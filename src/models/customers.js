@@ -1,4 +1,5 @@
 import { db } from "../db.js";
+import createError from 'http-errors';
 
 export async function createCustomer({ full_name, email }) {
   try {
@@ -10,8 +11,9 @@ export async function createCustomer({ full_name, email }) {
     );
     return rows[0];
   } catch (err) {
-    if (err.code === "23505")
-      throw new Error("Customer already exists", { cause: err });
+    if (err.code === "23505") {
+      throw createError(400, "Customer already exists");
+    }
     throw err;
   }
 }
