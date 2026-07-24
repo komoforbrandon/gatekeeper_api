@@ -25,7 +25,7 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/:id", async (req, res, next) => {
-  const { id } = parse(idSchema, req.params, 400);
+  const id = parse(idSchema, req.params.id, 400);
 
   try {
     const event = await events.listAnEvent(id);

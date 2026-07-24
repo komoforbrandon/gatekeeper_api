@@ -48,7 +48,7 @@ export function createApp() {
     next(createError(404, "Route not found"));
   });
 
-  app.use((err, req, res) => {
+  app.use((err, req, res, _next) => {
     const status = err.status || 500;
     if (status >= 500) {
       (req.log ?? logger).error({ err }, "request  failed");

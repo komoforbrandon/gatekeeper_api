@@ -36,8 +36,6 @@ router.post("/login", async (req, res) => {
     user ? user.password_hash : dummy_hash,
   );
 
-  console.log(passwordCheck)
-
   if (!user || !passwordCheck) {
     throw createError(401, "Invalid email or password");
   }

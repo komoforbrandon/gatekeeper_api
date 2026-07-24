@@ -11,27 +11,27 @@ INSERT INTO
 VALUES
     (
         'alice.organizer@events.com',
-        '$2b$10$EixVaHa5U6G36.i6JkvC9uE4F7g/m5I6V6K7L8M9N0O1P2Q3R4S56',
+        '$2b$10$yU9FPuxigI1QI0mJVKitSe.bJaMRW6S7whXs.u7pP5YdwBlXWe7Bm',
         NOW () - INTERVAL '30 days'
     ),
     (
         'bob.promotions@festivals.net',
-        '$2b$10$EixVaHa5U6G36.i6JkvC9uE4F7g/m5I6V6K7L8M9N0O1P2Q3R4S56',
+        '$2b$10$yU9FPuxigI1QI0mJVKitSe.bJaMRW6S7whXs.u7pP5YdwBlXWe7Bm',
         NOW () - INTERVAL '25 days'
     ),
     (
         'charlie.concerts@music.org',
-        '$2b$10$EixVaHa5U6G36.i6JkvC9uE4F7g/m5I6V6K7L8M9N0O1P2Q3R4S56',
+        '$2b$10$yU9FPuxigI1QI0mJVKitSe.bJaMRW6S7whXs.u7pP5YdwBlXWe7Bm',
         NOW () - INTERVAL '20 days'
     ),
     (
         'kb@gmail.com',
-        '$2b$10$EixVaHa5U6G36.i6JkvC9uE4F7g/m5I6V6K7L8M9N0O1P2Q3R4S56',
+        '$2b$10$yU9FPuxigI1QI0mJVKitSe.bJaMRW6S7whXs.u7pP5YdwBlXWe7Bm',
         NOW () - INTERVAL '12 days'
     ),
     (
         'diana.community@culture.org',
-        '$2b$10$EixVaHa5U6G36.i6JkvC9uE4F7g/m5I6V6K7L8M9N0O1P2Q3R4S56',
+        '$2b$10$yU9FPuxigI1QI0mJVKitSe.bJaMRW6S7whXs.u7pP5YdwBlXWe7Bm',
         NOW () - INTERVAL '8 days'
     );
 
