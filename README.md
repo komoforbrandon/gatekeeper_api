@@ -119,7 +119,7 @@ Example `.env.test`:
 
 ```env
 PORT=3000
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/gatekeeper_db
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/gatekeeper_db_test
 JWT_SECRET=dev-secret-for-tests
 NODE_ENV=test
 LOG_LEVEL=silent
