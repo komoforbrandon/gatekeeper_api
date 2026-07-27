@@ -1,0 +1,368 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Gatekeeper Ticket Sales API",
+    "version": "1.0.0",
+    "description": "OpenAPI specification for the Gatekeeper ticket sales service, including authentication, customer profiles, event management, bookings, and organizer-restricted booking views.",
+    "contact": {
+      "name": "Gatekeeper API Team",
+      "email": "support@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://gatekeeper-api-czby.onrender.com",
+      "description": "Production API server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT bearer token used for authenticated organizer operations. Provide as Authorization header value: Bearer <token>."
+      }
+    },
+    "schemas": {
+      "UserTable": {
+        "type": "object",
+        "description": "Database user record including hashed password and creation timestamp.",
+        "properties": {
+          "id": {"type": "integer", "format": "int64", "description": "Primary key for the user."},
+          "email": {"type": "string", "format": "email", "description": "Unique organizer email address.", "maxLength": 255},
+          "password_hash": {"type": "string", "description": "Hashed password stored for the user.", "maxLength": 255},
+          "created_at": {"type": "string", "format": "date-time", "description": "Timestamp when the user record was created."}
+        },
+        "required": ["id", "email", "password_hash", "created_at"]
+      },
+      "UserPublic": {
+        "type": "object",
+        "description": "Public organizer object returned after registration or login, excluding hashed password.",
+        "properties": {
+          "id": {"type": "integer", "format": "int64", "description": "Unique organizer identifier."},
+          "email": {"type": "string", "format": "email", "description": "Organizer email address.", "maxLength": 255}
+        },
+        "required": ["id", "email"]
+      },
+      "CustomerTable": {
+        "type": "object",
+        "description": "Database customer record used for ticket bookings.",
+        "properties": {
+          "id": {"type": "integer", "format": "int64", "description": "Primary key for the customer."},
+          "full_name": {"type": "string", "description": "Customer full name.", "maxLength": 120},
+          "email": {"type": "string", "format": "email", "description": "Customer email address.", "maxLength": 255}
+        },
+        "required": ["id", "full_name", "email"]
+      },
+      "Customer": {
+        "type": "object",
+        "description": "Public customer profile returned after creation.",
+        "properties": {
+          "id": {"type": "integer", "format": "int64", "description": "Unique customer identifier."},
+          "full_name": {"type": "string", "description": "Customer full name.", "maxLength": 120},
+          "email": {"type": "string", "format": "email", "description": "Customer email address.", "maxLength": 255}
+        },
+        "required": ["id", "full_name", "email"]
+      },
+      "EventTable": {
+        "type": "object",
+        "description": "Database event record including organizer ownership and sale status.",
+        "properties": {
+          "id": {"type": "integer", "format": "int64", "description": "Primary key for the event."},
+          "organizer_id": {"type": "integer", "format": "int64", "description": "Identifier of the organizer who created the event."},
+          "name": {"type": "string", "description": "Event name.", "maxLength": 150},
+          "venue": {"type": "string", "description": "Event venue.", "maxLength": 150},
+          "starts_at": {"type": "string", "format": "date-time", "description": "Start datetime of the event in ISO 8601 format."},
+          "capacity": {"type": "integer", "description": "Total ticket capacity for the event.", "minimum": 0},
+          "seats_remaining": {"type": "integer", "description": "Number of tickets still available for sale.", "minimum": 0},
+          "status": {"type": "string", "description": "Current sale status of the event.", "enum": ["on_sale", "sold_out", "cancelled"]}
+        },
+        "required": ["id", "organizer_id", "name", "venue", "starts_at", "capacity", "seats_remaining", "status"]
+      },
+      "Event": {
+        "type": "object",
+        "description": "Public event object returned to clients.",
+        "properties": {
+          "id": {"type": "integer", "format": "int64", "description": "Unique event identifier."},
+          "organizer_id": {"type": "integer", "format": "int64", "description": "Identifier of the organizer who created the event."},
+          "name": {"type": "string", "description": "Event title.", "maxLength": 150},
+          "venue": {"type": "string", "description": "Venue where the event takes place.", "maxLength": 150},
+          "starts_at": {"type": "string", "format": "date-time", "description": "Event start datetime in ISO 8601 format."},
+          "capacity": {"type": "integer", "description": "Total number of tickets available.", "minimum": 0},
+          "seats_remaining": {"type": "integer", "description": "Tickets remaining for booking.", "minimum": 0},
+          "status": {"type": "string", "description": "Current ticket sale status.", "enum": ["on_sale", "sold_out", "cancelled"]}
+        },
+        "required": ["id", "organizer_id", "name", "venue", "starts_at", "capacity", "seats_remaining", "status"]
+      },
+      "BookingTable": {
+        "type": "object",
+        "description": "Database booking record used for transactionally tracking ticket reservations.",
+        "properties": {
+          "id": {"type": "integer", "format": "int64", "description": "Primary key for the booking."},
+          "event_id": {"type": "integer", "format": "int64", "description": "Identifier of the event being booked."},
+          "customer_id": {"type": "integer", "format": "int64", "description": "Identifier of the customer making the booking."},
+          "quantity": {"type": "integer", "description": "Number of tickets reserved.", "minimum": 1},
+          "status": {"type": "string", "description": "Booking status.", "enum": ["confirmed", "cancelled"]},
+          "booked_at": {"type": "string", "format": "date-time", "description": "Timestamp when the booking was created."}
+        },
+        "required": ["id", "event_id", "customer_id", "quantity", "status", "booked_at"]
+      },
+      "Booking": {
+        "type": "object",
+        "description": "Public booking object returned to clients.",
+        "properties": {
+          "id": {"type": "integer", "format": "int64", "description": "Unique booking identifier."},
+          "event_id": {"type": "integer", "format": "int64", "description": "Identifier of the booked event."},
+          "customer_id": {"type": "integer", "format": "int64", "description": "Identifier of the customer who made the booking."},
+          "quantity": {"type": "integer", "description": "Number of tickets reserved.", "minimum": 1},
+          "status": {"type": "string", "description": "Current booking status.", "enum": ["confirmed", "cancelled"]},
+          "booked_at": {"type": "string", "format": "date-time", "description": "Timestamp when the booking was created."}
+        },
+        "required": ["id", "event_id", "customer_id", "quantity", "status", "booked_at"]
+      },
+      "UserCredentials": {
+        "type": "object",
+        "description": "Credentials payload for registration and login.",
+        "properties": {
+          "email": {"type": "string", "format": "email", "description": "Organizer email address.", "maxLength": 255},
+          "password": {"type": "string", "description": "Organizer account password.", "maxLength": 255}
+        },
+        "required": ["email", "password"],
+        "additionalProperties": false
+      },
+      "AuthResponse": {
+        "type": "object",
+        "description": "Authentication response containing a signed JWT token and user object.",
+        "properties": {
+          "token": {"type": "string", "description": "Signed JWT token for authenticated requests."},
+          "user": {"$ref": "#/components/schemas/UserPublic"}
+        },
+        "required": ["token", "user"]
+      },
+      "CustomerCreate": {
+        "type": "object",
+        "description": "Request payload to create a public customer profile.",
+        "properties": {
+          "full_name": {"type": "string", "description": "Customer full name.", "maxLength": 120},
+          "email": {"type": "string", "format": "email", "description": "Customer email address.", "maxLength": 255}
+        },
+        "required": ["full_name", "email"],
+        "additionalProperties": false
+      },
+      "EventCreate": {
+        "type": "object",
+        "description": "Request payload to create a new event.",
+        "properties": {
+          "name": {"type": "string", "description": "Event name.", "minLength": 1, "maxLength": 150},
+          "venue": {"type": "string", "description": "Event venue.", "minLength": 1, "maxLength": 150},
+          "starts_at": {"type": "string", "format": "date-time", "description": "Start datetime in ISO 8601 format."},
+          "capacity": {"type": "integer", "description": "Total ticket capacity for the event.", "minimum": 1}
+        },
+        "required": ["name", "venue", "starts_at", "capacity"],
+        "additionalProperties": false
+      },
+      "BookingCreate": {
+        "type": "object",
+        "description": "Request payload to create a booking for an event.",
+        "properties": {
+          "customer_id": {"type": "integer", "format": "int64", "description": "Identifier of the existing customer who is booking tickets."},
+          "quantity": {"type": "integer", "description": "Number of tickets to reserve.", "minimum": 1, "maximum": 10}
+        },
+        "required": ["customer_id", "quantity"],
+        "additionalProperties": false
+      },
+      "PaginationQuery": {
+        "type": "object",
+        "description": "Common query parameters used for keyset pagination.",
+        "properties": {
+          "after": {"type": "integer", "description": "Cursor ID after which to return results.", "minimum": 0, "default": 0},
+          "limit": {"type": "integer", "description": "Maximum number of items to return.", "minimum": 1, "maximum": 100, "default": 20}
+        }
+      },
+      "IdParam": {
+        "type": "integer",
+        "format": "int64",
+        "description": "Positive integer identifier used for path parameters.",
+        "minimum": 1
+      },
+      "EventListResponse": {
+        "type": "object",
+        "description": "Response containing a page of events and the next cursor.",
+        "properties": {
+          "events": {"type": "array", "description": "Array of event objects for the current page.", "items": {"$ref": "#/components/schemas/Event"}},
+          "next": {"type": ["integer", "null"], "format": "int64", "description": "Next cursor ID for the following page, or null if there are no further results.", "minimum": 0}
+        },
+        "required": ["events", "next"]
+      },
+      "BookingListResponse": {
+        "type": "object",
+        "description": "Response containing a page of bookings and the next cursor.",
+        "properties": {
+          "bookings": {"type": "array", "description": "Array of booking objects for the current page.", "items": {"$ref": "#/components/schemas/Booking"}},
+          "next": {"type": ["integer", "null"], "format": "int64", "description": "Next cursor ID for the following page, or null if there are no further results.", "minimum": 0}
+        },
+        "required": ["bookings", "next"]
+      },
+      "BookingCreateResponse": {
+        "type": "object",
+        "description": "Successful booking creation response.",
+        "properties": {
+          "success": {"type": "boolean", "description": "Indicates whether the booking was created successfully."},
+          "bookingInfo": {"$ref": "#/components/schemas/Booking"},
+          "customerInfo": {"$ref": "#/components/schemas/Customer"}
+        },
+        "required": ["success", "bookingInfo", "customerInfo"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "description": "Standard error response envelope.",
+        "properties": {
+          "error": {
+            "type": "object",
+            "description": "Error information returned by the API.",
+            "properties": {
+              "status": {"type": "integer", "description": "HTTP status code of the error."},
+              "message": {"type": "string", "description": "Human-readable error message."},
+              "detail": {"type": "string", "description": "Optional additional error details."}
+            },
+            "required": ["status", "message"]
+          }
+        },
+        "required": ["error"]
+      },
+      "BadRequestError": {"allOf": [{"$ref": "#/components/schemas/ErrorResponse"}], "description": "Request was malformed or validation failed."},
+      "UnauthorizedError": {"allOf": [{"$ref": "#/components/schemas/ErrorResponse"}], "description": "Authentication failed or credentials were missing."},
+      "NotFoundError": {"allOf": [{"$ref": "#/components/schemas/ErrorResponse"}], "description": "The requested resource was not found."},
+      "ConflictError": {"allOf": [{"$ref": "#/components/schemas/ErrorResponse"}], "description": "The request conflicts with the current resource state."}
+    }
+  },
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Register a new organizer.",
+        "description": "Registers a new organizer account and returns a signed JWT token along with the created user object.",
+        "requestBody": {"description": "Organizer registration payload.", "required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserCredentials"}}}},
+        "responses": {
+          "201": {"description": "Organizer account created successfully.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AuthResponse"}}}},
+          "400": {"description": "Invalid registration payload or email already exists.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BadRequestError"}}}}
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Authenticate an organizer.",
+        "description": "Authenticates organizer credentials and returns a signed JWT token plus the organizer user object.",
+        "requestBody": {"description": "Organizer login credentials.", "required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/UserCredentials"}}}},
+        "responses": {
+          "200": {"description": "Authentication successful.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AuthResponse"}}}},
+          "401": {"description": "Invalid email or password.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/UnauthorizedError"}}}}
+        }
+      }
+    },
+    "/customers": {
+      "post": {
+        "summary": "Create a public customer profile.",
+        "description": "Creates a new customer profile that may be used for ticket bookings.",
+        "requestBody": {"description": "Customer creation payload.", "required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CustomerCreate"}}}},
+        "responses": {
+          "201": {"description": "Customer profile created successfully.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Customer"}}}},
+          "400": {"description": "Invalid customer payload or email already exists.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BadRequestError"}}}}
+        }
+      }
+    },
+    "/events": {
+      "get": {
+        "summary": "Get a paginated list of events.",
+        "description": "Returns keyset-paginated events and a next cursor for subsequent pages.",
+        "parameters": [
+          {"name": "after", "in": "query", "description": "Cursor ID after which to return events.", "required": false, "schema": {"type": "integer", "minimum": 0, "default": 0}},
+          {"name": "limit", "in": "query", "description": "Maximum number of events to return.", "required": false, "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20}}
+        ],
+        "responses": {
+          "200": {"description": "Events returned successfully.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/EventListResponse"}}}},
+          "400": {"description": "Invalid pagination parameters.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BadRequestError"}}}}
+        }
+      },
+      "post": {
+        "summary": "Create a new event.",
+        "description": "Creates an event and requires a valid Bearer JWT token from organizer login.",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {"description": "Event creation payload.", "required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/EventCreate"}}}},
+        "responses": {
+          "201": {"description": "Event created successfully.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Event"}}}},
+          "400": {"description": "Invalid event payload.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BadRequestError"}}}},
+          "401": {"description": "Missing or invalid Bearer token.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/UnauthorizedError"}}}}
+        }
+      }
+    },
+    "/events/{id}": {
+      "get": {
+        "summary": "Get a single event by ID.",
+        "description": "Fetches details for a single event by its identifier.",
+        "parameters": [{"name": "id", "in": "path", "description": "Event identifier.", "required": true, "schema": {"$ref": "#/components/schemas/IdParam"}}],
+        "responses": {
+          "200": {"description": "Event retrieved successfully.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Event"}}}},
+          "404": {"description": "Event not found.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/NotFoundError"}}}},
+          "400": {"description": "Invalid event ID supplied.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BadRequestError"}}}}
+        }
+      }
+    },
+    "/events/{id}/bookings": {
+      "get": {
+        "summary": "List bookings for an event.",
+        "description": "Returns keyset-paginated bookings for the specified event. Only the event organizer may access this endpoint.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "description": "Event identifier.", "required": true, "schema": {"$ref": "#/components/schemas/IdParam"}},
+          {"name": "after", "in": "query", "description": "Cursor ID after which to return bookings.", "required": false, "schema": {"type": "integer", "minimum": 0, "default": 0}},
+          {"name": "limit", "in": "query", "description": "Maximum number of bookings to return.", "required": false, "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20}}
+        ],
+        "responses": {
+          "200": {"description": "Bookings returned successfully.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BookingListResponse"}}}},
+          "403": {"description": "Requester is not authorized as the event organizer.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/UnauthorizedError"}}}},
+          "404": {"description": "Event not found.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/NotFoundError"}}}},
+          "400": {"description": "Invalid event ID or pagination query.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BadRequestError"}}}},
+          "401": {"description": "Missing or invalid Bearer token.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/UnauthorizedError"}}}}
+        }
+      },
+      "post": {
+        "summary": "Create a booking for an event.",
+        "description": "Books tickets transactionally for the specified event.",
+        "parameters": [{"name": "id", "in": "path", "description": "Event identifier.", "required": true, "schema": {"$ref": "#/components/schemas/IdParam"}}],
+        "requestBody": {"description": "Booking request payload.", "required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BookingCreate"}}}},
+        "responses": {
+          "201": {"description": "Booking created successfully. Location header indicates the new booking resource.", "headers": {"Location": {"description": "URI of the newly created booking resource.", "schema": {"type": "string", "format": "uri"}}}, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BookingCreateResponse"}}}},
+          "400": {"description": "Unknown customer or invalid booking request data.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BadRequestError"}}}},
+          "404": {"description": "Event not found.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/NotFoundError"}}}},
+          "409": {"description": "Insufficient seats or event is not on sale.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ConflictError"}}}}
+        }
+      }
+    },
+    "/bookings/{id}": {
+      "get": {
+        "summary": "Retrieve a booking by ID.",
+        "description": "Fetches a single booking record by its identifier.",
+        "parameters": [{"name": "id", "in": "path", "description": "Booking identifier.", "required": true, "schema": {"$ref": "#/components/schemas/IdParam"}}],
+        "responses": {
+          "200": {"description": "Booking retrieved successfully.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Booking"}}}},
+          "404": {"description": "Booking not found.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/NotFoundError"}}}},
+          "400": {"description": "Invalid booking ID supplied.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BadRequestError"}}}}
+        }
+      }
+    },
+    "/bookings/{id}/cancel": {
+      "post": {
+        "summary": "Cancel an existing booking.",
+        "description": "Cancels a booking transactionally and restores available seats on the related event.",
+        "parameters": [{"name": "id", "in": "path", "description": "Booking identifier to cancel.", "required": true, "schema": {"$ref": "#/components/schemas/IdParam"}}],
+        "responses": {
+          "204": {"description": "Booking cancelled successfully with no response body."},
+          "404": {"description": "Booking not found.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/NotFoundError"}}}},
+          "409": {"description": "Booking is already cancelled.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ConflictError"}}}},
+          "400": {"description": "Invalid booking ID supplied.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BadRequestError"}}}}
+        }
+      }
+    }
+  }
+}
